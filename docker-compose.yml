@@ -13,6 +13,12 @@ services:
       - mysql_data:/var/lib/mysql
     networks:
       - customer-network
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost --silent"]
+      interval: 5s
+      retries: 5
+      start_period: 30s
+      timeout: 2s
 
   customer-app:
     build: ./app
@@ -24,12 +30,13 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - customer-db
+      customer-db:
+        condition: service_healthy
     volumes:
       - ./app:/app
     networks:
       - customer-network
-    # restart: always
+    restart: always
 
 volumes:
   mysql_data:
